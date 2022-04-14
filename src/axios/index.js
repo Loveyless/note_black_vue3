@@ -6,7 +6,7 @@ axios.defaults.baseURL = "http://localhost:9999";
 axios.interceptors.request.use(
   function (config) {
     // 在发送请求之前做些什么
-    config.headers.authorization = localStorage.getItem("token")   //token过期怎么办呢
+    config.headers.authorization = window.sessionStorage.getItem("token");   //token过期怎么办呢
     return config;
   },
   function (error) {

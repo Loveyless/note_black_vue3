@@ -8,6 +8,9 @@ const expressJwt = require("express-jwt");
 
 // 登录逻辑
 const loginRouter = require("./Router/login")
+// 笔记逻辑
+const noteRouter = require("./Router/note")
+
 
 //跨域
 app.all("*", (req, res, next) => {
@@ -34,7 +37,7 @@ app.use(
     secret: jwtKey, //加密私钥，可换成别的
     algorithms: ["HS256"], //算法 ["HS256"]为默认值
   }).unless({
-    path: ["/login", "/create_user", "/api/test"], //添加不需要token验证的路由
+    path: ["/login", "/create_user"], //添加不需要token验证的路由
   })
 );
 
@@ -44,6 +47,8 @@ db.then(
 
     //登录逻辑
     app.use(loginRouter);
+    //笔记逻辑
+    app.use(noteRouter);
 
     // //进入主页
     // app.get("/home", (req, res, next) => {

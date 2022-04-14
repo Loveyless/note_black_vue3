@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const usersModel = require("../Model/users");
+const usersModel = require("../Model/usersModel");
 const jwt = require("jsonwebtoken");
 
 const jwtKey = "loveyless";
@@ -42,7 +42,7 @@ router.post("/login", (req, res, next) => {
             console.log(_id);
             res.json({
               username,
-              token,
+              token:"Bearer " + token,
               _id: data._id,
               status: 200,
               message: "登录成功",
