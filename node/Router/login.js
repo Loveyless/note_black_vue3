@@ -26,7 +26,7 @@ router.post("/login", (req, res, next) => {
       } else {
         // 生成token 并且返回
         jwt.sign(
-          { username: data.username, _id: data._id }, //传入负载 最好不传密码容易泄露
+          { username: data.username, _id: String(data._id) }, //传入负载 最好不传密码容易泄露
 
           jwtKey, //加密私钥
 
@@ -42,7 +42,7 @@ router.post("/login", (req, res, next) => {
             console.log(_id);
             res.json({
               username,
-              token:"Bearer " + token,
+              token: "Bearer " + token,
               _id: data._id,
               status: 200,
               message: "登录成功",

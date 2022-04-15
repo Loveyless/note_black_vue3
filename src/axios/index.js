@@ -19,18 +19,19 @@ axios.interceptors.request.use(
 axios.interceptors.response.use(
   function (response) {
 
-    response = response.data;
-    if (response.status == 200) {
+    const {status,message} = response.data;
+    if (status == 200) {
       ElMessage({
-        message: response.message,
+        message: message,
         type: "success",
         duration: 800,
         "show-close": true,
         center:true,
       });
     } else {
+      console.log(message);
       ElMessage({
-        message: response.message,
+        message: message,
         type: "error",
         duration: 800,
         "show-close":true,
@@ -38,7 +39,7 @@ axios.interceptors.response.use(
       });
     }
 
-    return response;
+    return response.data;
   },
   function (error) {
     // 对响应错误做点什么
