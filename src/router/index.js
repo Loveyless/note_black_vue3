@@ -27,7 +27,7 @@ const router = createRouter({
 
 //拦截器
 router.beforeEach((to, from, next) => {
-  if (to.path == "/login") {
+  if (to.path == "/login" || "find") {
     next();
   }
 
