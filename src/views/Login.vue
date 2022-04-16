@@ -86,6 +86,9 @@
       >
     </div>
   </el-card>
+
+  <div class="vx">作者微信:Loveyless</div>
+
 </template>
 
 <script setup>
@@ -98,22 +101,22 @@ const store = useStore();
 
 //登录逻辑
 const userData = reactive({
-  username: "loveyless",
-  password: "12345",
+  username: "",
+  password: "",
 });
 const login = async () => {
   const { status, username, token } = await axios.post("/login", userData);
   if (status == 200) {
     // userData.username = ""
     // userData.password = ""
-    store.state.username = username;
-    window.sessionStorage.setItem("token", token);
+    window.localStorage.setItem("username", username);
+    window.localStorage.setItem("token", token);
     router.push("/Home");
   }
 };
 // 自动登录
 const autoLogin = () => {
-  const token = window.sessionStorage.getItem("token");
+  const token = window.localStorage.getItem("token");
   if (token) {
     login();
   }
@@ -178,5 +181,13 @@ const btnFind = () => {
       margin-bottom: 10px;
     }
   }
+}
+.vx{
+  margin-top: 20px;
+  font-size: 13px;
+  text-align: center;
+  width: 200px;
+  margin-left: calc(50% - 100px);
+  color: #ccc;
 }
 </style>

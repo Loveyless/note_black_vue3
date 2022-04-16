@@ -41,7 +41,6 @@ router.post("/note", (req, res, next) => {
           message: "添加成功",
         });
       } else {
-        console.log(err);
         res.json({
           status: 400,
           message: err.message,
@@ -51,11 +50,37 @@ router.post("/note", (req, res, next) => {
   );
 });
 
-//删除笔记
-router.delete("/note", (req, res, next) => {
-  const { dateNum } = req.body;
+//修改笔记
+router.post("/note_update", (req, res, next) => {
+  const { title, text, type, date, dateNum, dataNum_update } = req.body;
+  noteModel.updateOne(
+    { note_id: req.user._id, dateNum: dateNum },
+    {
+      title: title,
+      text: text,
+      type: type,
+      date: date,
+      dateNum: dataNum_update,
+    },
+    (err, data) => {
+      !err &&
+        res.json({
+          message: "更新成功",
+          status: 200,
+        });
+      err &&
+        res.json({
+          message: "更新失败",
+          status: 400,
+        });
+    }
+  );
+});
 
-  noteModel.deleteOne({ dateNum }, (err, data) => {
+//删除笔记
+router.get("/note_delete", (req, res, next) => {
+  const { dateNum } = req.query;
+  noteModel.deleteOne({ note_id: req.user._id, dateNum }, (err, data) => {
     !err &&
       res.json({
         message: "删除成功",
@@ -67,8 +92,6 @@ router.delete("/note", (req, res, next) => {
         status: 400,
       });
   });
-
-  res.json();
 });
 
 module.exports = router;

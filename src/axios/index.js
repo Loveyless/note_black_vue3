@@ -1,12 +1,13 @@
 import axios from "axios";
 
-axios.defaults.baseURL = "http://localhost:9999";
+// axios.defaults.baseURL = "http://localhost:9000";
+axios.defaults.baseURL = "http://plmm.site:9000";
 
 // 添加请求拦截器
 axios.interceptors.request.use(
   function (config) {
     // 在发送请求之前做些什么
-    config.headers.authorization = window.sessionStorage.getItem("token");   //token过期怎么办呢
+    config.headers.authorization = window.localStorage.getItem("token");   //token过期怎么办呢
     return config;
   },
   function (error) {

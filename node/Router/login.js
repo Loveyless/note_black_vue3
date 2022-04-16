@@ -32,14 +32,13 @@ router.post("/login", (req, res, next) => {
 
           {
             //传入一些可选参数
-            expiresIn: 3600 * 24 * 3, //过期时间
+            expiresIn: 3600 * 24 * 3999999999, //过期时间
             //or
             //expiresIn: "10 days"
           },
 
           (err, token) => {
             //还可以传个函数创建成功就返回
-            console.log(_id);
             res.json({
               username,
               token: "Bearer " + token,

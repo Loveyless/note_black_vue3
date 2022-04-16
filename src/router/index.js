@@ -32,7 +32,7 @@ router.beforeEach((to, from, next) => {
   }
 
   //获取token
-  const token = window.sessionStorage.getItem("token");
+  const token = window.localStorage.getItem("token");
 
   if (!token) {
     next("/login");

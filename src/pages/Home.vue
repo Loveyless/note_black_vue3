@@ -4,14 +4,14 @@
       <div class="top">
         <div class="left">
           <el-image style="width: 50px; height: 50px" :src="logoURL" />
-          <span>{{ store.state.username }}</span>
+          <div>{{ username }}</div>
         </div>
 
         <div class="mid">笔记便签</div>
 
         <div class="right">
           <el-button
-            @click="dialogFormVisible = true"
+            @click="Create_note"
             type="primary"
             size="large"
             plain
@@ -32,17 +32,25 @@
               </el-dropdown-menu>
             </template>
           </el-dropdown>
+          <el-button
+            @click="quit"
+            type="primary"
+            size="large"
+            plain
+            class="quit"
+            >退出登录</el-button
+          >
         </div>
       </div>
     </el-card>
 
-    <div class="main">
+    <div class="main" v-show="noteData.length != 0">
       <!-- 笔记 -->
       <div class="item" v-for="item in noteData" :key="item.dateNum">
         <h3 class="title">
           <div class="text">{{ item.title }}</div>
+          <!-- 编辑删除 -->
           <div class="icon">
-
             <el-icon @click="editNote(item.dateNum)"><edit /></el-icon>
 
             <el-popconfirm
@@ -57,7 +65,6 @@
                 <el-icon><delete /></el-icon>
               </template>
             </el-popconfirm>
-
           </div>
         </h3>
         <div class="date_type">
@@ -68,16 +75,35 @@
       </div>
     </div>
 
+    <!-- 空状态 -->
+    <el-empty
+      v-show="noteData.length == 0"
+      :image-size="300"
+      description="还没有笔记"
+    >
+      <el-button type="primary" @click="Create_note">新建笔记</el-button>
+    </el-empty>
+
     <!-- 对话框 -->
-    <el-dialog v-model="dialogFormVisible" title="编辑笔记">
+    <el-dialog
+      v-model="dialogFormVisible"
+      title="编辑笔记"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      :destroy-on-close="true"
+    >
       <div class="dialog">
         <div class="title">
-          <el-input v-model="dialogForm.title" placeholder="标题" />
+          <el-input
+            v-model="dialogForm.title"
+            placeholder="标题"
+            maxlength="15"
+          />
         </div>
 
         <div class="type">
           分类
-          <el-select v-model="dialogForm.type" size="small" placeholder="分类">
+          <el-select v-model="dialogForm.type" size="small">
             <el-option label="全部" value="全部" />
             <el-option label="生活" value="生活" />
             <el-option label="工作" value="工作" />
@@ -103,49 +129,66 @@
         </span>
       </template>
     </el-dialog>
-    <el-popconfirm
-      confirm-button-text="确定"
-      cancel-button-text="取消"
-      :icon="InfoFilled"
-      icon-color="red"
-      title="确认删除?"
-    >
-      <template #reference>
-        <el-icon @click="deleteNote(item.dateNum)"><edit /></el-icon>
-      </template>
-    </el-popconfirm>
   </div>
 </template>
 
 <script setup>
-import { defineComponent, ref, reactive, toRefs } from "vue";
+import {
+  defineComponent,
+  ref,
+  reactive,
+  toRefs,
+  getCurrentInstance,
+  watch,
+} from "vue";
 import { ArrowDown, Delete, Edit, InfoFilled } from "@element-plus/icons-vue";
 import { useStore } from "vuex";
 import axios from "@/axios";
 import logo from "../assets/logo.png";
 import title from "../assets/title.png";
+import router from "@/router";
 const store = useStore();
 //图片
 const logoURL = logo;
 const titleURL = title;
+// ctx.$forceUpdate()
+const { ctx } = getCurrentInstance();
+console.log(ctx);
+//用户名
+const username = ref(window.localStorage.getItem("username"));
+localStorage;
 
-//便签数据
-var noteData = reactive([]);
+//初始便签数据
+let _noteData = ref([]);
+//加工后
+let noteData = ref([]);
+
+// 顶部展示下拉菜单
+const handleCommand = (type) => {
+  if (type == "全部") {
+    noteData.value = _noteData.value;
+  } else {
+    noteData.value = _noteData.value.filter((v, i, arr) => {
+      return v.type == type;
+    });
+  }
+};
 
 //获取便签
 const getNote = async () => {
   const { data } = await axios.get("/note");
-  noteData.push(...data);
+  _noteData.value = data.sort((a, b) => {
+    return b.dateNum - a.dateNum;
+  });
+  noteData.value = _noteData.value;
 };
 getNote();
 
+//删除便签
 const deleteNote = async (dataNum) => {
-  await axios.delete("/note", { dataNum });
+  await axios.get(`/note_delete?dateNum=${dataNum}`);
   getNote();
 };
-
-// 顶部展示下拉菜单
-const handleCommand = (i) => {};
 
 //对话框
 let dialogFormVisible = ref(false);
@@ -156,13 +199,46 @@ const dialogForm = reactive({
   date: null,
   dateNum: null,
 });
+
+// 打开对话框为了编辑还是新建?
+let isCreate = ref(true);
+
+//新建笔记
+const Create_note = () => {
+  isCreate = true;
+  dialogFormVisible.value = true;
+  dialogForm.title = "";
+  dialogForm.type = "全部";
+  dialogForm.text = "";
+  dialogForm.date = new Date().toLocaleString();
+  dialogForm.dateNum = Date.now();
+};
+
+//编辑笔记
+const editNote = async (dateNum) => {
+  isCreate = false;
+  dialogFormVisible.value = true;
+  const arr = noteData.value.filter((v, i, arr) => {
+    return v.dateNum == dateNum;
+  });
+  dialogForm.title = arr[0].title;
+  dialogForm.text = arr[0].text;
+  dialogForm.type = arr[0].type;
+  dialogForm.date = new Date().toLocaleString();
+  dialogForm.dateNum = dateNum; //传回去对比
+  dialogForm.dataNum_update = Date.now(); //传回去更新
+};
+
 //对话框取消
 const dialogCancel = () => {
   dialogFormVisible.value = false;
   dialogForm.title = "";
   dialogForm.type = "全部";
   dialogForm.text = "";
+  dialogForm.date = null;
+  dialogForm.dateNum = null;
 };
+
 //对话框确认
 const dialogEnter = async () => {
   if (dialogForm.title == "") {
@@ -172,13 +248,37 @@ const dialogEnter = async () => {
     });
     return;
   }
-  dialogForm.date = new Date().toLocaleString();
-  dialogForm.dateNum = Date.now();
-  const { status } = await axios.post("/note", { ...dialogForm });
+  if (isCreate) {
+    var { status } = await axios.post("/note", { ...dialogForm });
+  } else {
+    console.log("edit");
+    console.log({ ...dialogForm });
+    var { status } = await axios.post("/note_update", { ...dialogForm });
+  }
   if (status == 200) {
     dialogFormVisible.value = false;
+    dialogForm.title = "";
+    dialogForm.type = "全部";
+    dialogForm.text = "";
+    dialogForm.date = null;
+    dialogForm.dateNum = null;
     getNote();
   }
+};
+
+//退出登录
+const quit = () => {
+  dialogForm.title = "";
+  dialogForm.type = "全部";
+  dialogForm.text = "";
+  dialogForm.date = null;
+  dialogForm.dateNum = null;
+  window.localStorage.clear();
+  router.replace("/Login");
+  ElMessage({
+    message: "退出登录",
+    type: "success",
+  });
 };
 </script>
 
@@ -192,6 +292,9 @@ const dialogEnter = async () => {
     .left {
       margin-left: 80px;
       margin-top: -9px;
+      display: flex;
+      align-items: center;
+      margin-right: 10px;
     }
     .mid {
       font-size: 45px;
@@ -202,6 +305,9 @@ const dialogEnter = async () => {
       margin-right: 60px;
       & .new_note {
         margin-right: 20px;
+      }
+      .quit {
+        margin-left: 18px;
       }
     }
   }
@@ -222,6 +328,23 @@ const dialogEnter = async () => {
       border-radius: 9px;
       padding: 15px;
       overflow: auto;
+      &::-webkit-scrollbar {
+        width: 5px;
+        height: 10px;
+
+        background-color: #b5b1b1;
+      }
+      &::-webkit-scrollbar-track {
+        -webkit-box-shadow: inset 0 0 6px rgba(247, 247, 247, 0.3);
+        border-radius: 10px;
+        background-color: rgb(247, 247, 247);
+      }
+      &::-webkit-scrollbar-thumb {
+        border-radius: 10px;
+        -webkit-box-shadow: inset 0 0 6px rgba(219, 219, 219, 0.3);
+        background-color: #dfdfdf;
+      }
+
       .title {
         margin-left: 25px;
         margin-top: 3px;
@@ -249,6 +372,7 @@ const dialogEnter = async () => {
         margin-top: 10px;
         font-size: 17px;
         white-space: pre-wrap;
+        word-wrap: break-word;
       }
     }
   }
