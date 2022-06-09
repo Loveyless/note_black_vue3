@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // axios.defaults.baseURL = "http://localhost:9000";
-axios.defaults.baseURL = "http://plmm.site:9000";
+axios.defaults.baseURL = "http://t.plmm.site:9000";
 
 // 添加请求拦截器
 axios.interceptors.request.use(
